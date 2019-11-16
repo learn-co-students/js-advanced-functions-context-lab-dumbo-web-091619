@@ -1,22 +1,81 @@
-/* Your Code Here */
+const createEmployeeRecord = row => {
+    return {
+        firstName: row[0],
+        familyName: row[1],
+        title: row[2],
+        payPerHour: row[3],
+        timeInEvents: [],
+        timeOutEvents: []
+    }
+}
 
-/*
- We're giving you this function. Take a look at it, you might see some usage
- that's new and different. That's because we're avoiding a well-known, but
- sneaky bug that we'll cover in the next few lessons!
+const createEmployeeRecords = employeeInfo => {
+    return employeeInfo.map(info => {
+        return createEmployeeRecord(info)
+    })
+}
 
- As a result, the lessons for this function will pass *and* it will be available
- for you to use if you need it!
- */
+const createTimeInEvent = function(punchCardDate){
+    let [date, time] = punchCardDate.split(' ')
 
-let allWagesFor = function () {
-    let eligibleDates = this.timeInEvents.map(function (e) {
-        return e.date
+    this.timeInEvents.push({
+        type: "TimeIn",
+        hour: parseInt(time, 10),
+        date,
     })
 
-    let payable = eligibleDates.reduce(function (memo, d) {
-        return memo + wagesEarnedOnDate.call(this, d)
-    }.bind(this), 0) // <== Hm, why did we need to add bind() there? We'll discuss soon!
+    return this
+}
+
+const createTimeOutEvent = function(punchCardDate){
+    let [date, time] = punchCardDate.split(" ")
+
+    this.timeOutEvents.push({
+        type: "TimeOut",
+        hour: parseInt(time, 10),
+        date,
+    })
+
+    return this
+}
+
+const hoursWorkedOnDate = function(searchDate){
+    let clockIn = this.timeInEvents.find(event => {
+        return event.date === searchDate
+    })
+
+    let clockOut = this.timeOutEvents.find(event => {
+        return event.date === searchDate
+    })
+
+    return (clockOut.hour - clockIn.hour) / 100
+}
+
+const wagesEarnedOnDate = function(searchDate){
+    let allWages = hoursWorkedOnDate.call(this, searchDate) * this.payPerHour
+    return parseFloat(allWages.toString())
+}
+
+const allWagesFor = function(){
+    let wagesDates = this.timeInEvents.map(event => {
+        return event.date
+    })
+
+    let payable = wagesDates.reduce((wage, date) =>{
+        return wage + wagesEarnedOnDate.call(this, date)
+    }, 0)
 
     return payable
+}
+
+const findEmployeeByFirstName = (srcArray, name) => {
+  return srcArray.find(record =>{
+    return record.firstName === name
+  })
+}
+
+const calculatePayroll = employeeRecordsArray =>{
+    return employeeRecordsArray.reduce((wage, employeeRecord) => {
+        return wage + allWagesFor.call(employeeRecord)
+    }, 0)
 }
